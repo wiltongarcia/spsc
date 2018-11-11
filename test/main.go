@@ -18,7 +18,11 @@ func main() {
 	flag.Parse()
 	for {
 		// Config
-		cfg := config.New("../config/config.json")
+		jsonFile, err := os.Open("../config/config.json")
+		if err != nil {
+			log.Fatal("Unable to read the config file")
+		}
+		cfg := config.New(jsonFile)
 		configData, err := cfg.Get()
 		if err != nil {
 			log.Fatal("Unable to read the config file")
