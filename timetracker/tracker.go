@@ -18,11 +18,12 @@ type TimeTracker interface {
 type tt struct {
 	file      *os.File
 	dataRange []int64
+	semaphore chan struct{}
 }
 
 // Constructor
 func New(file *os.File) TimeTracker {
-	return &tt{file: file}
+	return &tt{file: file, semaphore: make(chan struct{}, 1)}
 }
 
 // Read the binary data from file
@@ -43,6 +44,12 @@ func (t *tt) Load() error {
 
 // Increment the total
 func (t *tt) Increment() int {
+	// wait a slot
+	t.semaphore <- struct{}{}
+	defer func() {
+		<-t.semaphore // read to release a slot
+	}()
+
 	// Actual timestamp
 	now := time.Now().Unix()
 	// Append the current Request
